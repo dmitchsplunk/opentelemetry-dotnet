@@ -1,10 +1,6 @@
 version: '3.8'
 
 services:
-  zipkin:
-    image: openzipkin/zipkin
-    ports:
-      - 9411:9411
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
@@ -22,12 +18,11 @@ services:
       - RABBITMQ_HOSTNAME=rabbitmq
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
-      - ZIPKIN_HOSTNAME=zipkin
     ports:
       - 5000:5000
     depends_on:
       - rabbitmq
-      - zipkin
+      - splunk-otel-collector
 
   workerservice:
     build:
@@ -39,8 +34,29 @@ services:
       - RABBITMQ_HOSTNAME=rabbitmq
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
-      - ZIPKIN_HOSTNAME=zipkin
     restart: on-failure
     depends_on:
       - rabbitmq
-      - zipkin
+      - splunk-otel-collector
+
+  splunk-otel-collector:
+    image: quay.io/signalfx/splunk-otel-collector:0.81.0
+    environment:
+      - SPLUNK_ACCESS_TOKEN=${SPLUNK_ACCESS_TOKEN}
+      - SPLUNK_REALM=${SPLUNK_REALM}
+    command: [ "--config=/etc/otel-collector-config.yml" ]
+    volumes:
+      - ./otel-collector-config.yml:/etc/otel-collector-config.yml
+      - ./logs:/logs
+      - ./checkpoint:/checkpoint
+    ports:
+      - "13133:13133"
+      - "14250:14250"
+      - "14268:14268"
+      - "4317:4317"
+      - "4318:4318"
+      - "6060:6060"
+      - "8888:8888"
+      - "9080:9080"
+      - "9411:9411"
+      - "9943:9943"

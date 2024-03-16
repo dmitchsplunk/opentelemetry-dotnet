@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Diagnostics;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -52,17 +51,5 @@ public static class RabbitMqHelper
         consumer.Received += (bc, ea) => processMessage(ea);
 
         channel.BasicConsume(queue: TestQueueName, autoAck: true, consumer: consumer);
-    }
-
-    public static void AddMessagingTags(Activity activity)
-    {
-        // These tags are added demonstrating the semantic conventions of the OpenTelemetry messaging specification
-        // See:
-        //   * https://github.com/open-telemetry/semantic-conventions/blob/main/docs/messaging/messaging-spans.md#messaging-attributes
-        //   * https://github.com/open-telemetry/semantic-conventions/blob/main/docs/messaging/rabbitmq.md
-        activity?.SetTag("messaging.system", "rabbitmq");
-        activity?.SetTag("messaging.destination_kind", "queue");
-        activity?.SetTag("messaging.destination", DefaultExchangeName);
-        activity?.SetTag("messaging.rabbitmq.routing_key", TestQueueName);
     }
 }

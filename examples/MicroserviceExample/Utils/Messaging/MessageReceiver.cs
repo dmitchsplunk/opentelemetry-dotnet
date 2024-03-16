@@ -48,17 +48,11 @@ public class MessageReceiver : IDisposable
         // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/messaging/messaging-spans.md#span-name
         var activityName = $"{ea.RoutingKey} receive";
 
-        using var activity = ActivitySource.StartActivity(activityName, ActivityKind.Consumer, parentContext.ActivityContext);
         try
         {
             var message = Encoding.UTF8.GetString(ea.Body.Span.ToArray());
 
             this.logger.LogInformation($"Message received: [{message}]");
-
-            activity?.SetTag("message", message);
-
-            // The OpenTelemetry messaging specification defines a number of attributes. These attributes are added here.
-            RabbitMqHelper.AddMessagingTags(activity);
 
             // Simulate some work
             Thread.Sleep(1000);
